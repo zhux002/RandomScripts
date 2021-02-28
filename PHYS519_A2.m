@@ -1,15 +1,18 @@
-close all
 figure
+clear all
 
-n = 100;
+n = 300;
 times = zeros(1, n); 
 times(1) = 0; 
 
 state_vector = zeros(3, n); 
-initial_state = [99, 10, 0];
+initial_state = [90, 10, 0];
 state_vector(:,1) =  initial_state';
 
-beta = 0.01; 
+%beta = 0.01; 
+beta = 0.1; 
+% beta = 0.005; 
+
 gamma = 0.1; 
 
 a_0 = beta*state_vector(1, 1)*state_vector(2, 1)+ gamma*state_vector(2, 1); 
@@ -18,42 +21,42 @@ for i = 2 : n
     
     times(i) = times(i-1) - log(rand)/(a_0);
     
-    if beta*state_vector(1, i-1)*state_vector(2, i-1) > rand*a_0
-        
-        state_vector(:,i) = state_vector(:,i-1) + [-1, 1, 0]'; 
-        
-    else 
+    if beta*state_vector(1, i-1)*state_vector(2, i-1) < rand*a_0
         
         state_vector(:,i) = state_vector(:,i-1) + [0, -1, 1]'; 
+        
+    else 
+        state_vector(:,i) = state_vector(:,i-1) + [-1, 1, 0]'; 
     end
     
     a_0 = beta*state_vector(1, i)*state_vector(2, i) + gamma*state_vector(2, i); 
     
-    if state_vector(1, i) == 0 
-        break 
-    end 
-    
-    if state_vector(1, i) == 0 
+    if state_vector(1, i) == 0 && state_vector(2, i) == 0 
         break 
     end 
     
     
 end
 
+non_zero_time_indices = find(times);
 
-time = [0, times(n)]; 
+time = [0 times(non_zero_time_indices(end))]; 
 
 [t,state] = ode45(@(t,state) DeterministicODEs(t,state), time, initial_state); 
 
-plot(times, state_vector(1,:), 'Linewidth', 2,'color','red') 
+plot(times(1:non_zero_time_indices(end)), state_vector(1,1:non_zero_time_indices(end)), ...
+    'Linewidth', 2,'color','red') 
 
 hold on
 
-plot(times, state_vector(2,:), 'Linewidth', 2, 'color','blue') 
+plot(times(1:non_zero_time_indices(end)), state_vector(2,1:non_zero_time_indices(end)), ...
+    'Linewidth', 2,'color','blue') 
 
 hold on
 
-plot(times, state_vector(3,:), 'Linewidth', 2, 'color','yellow') 
+plot(times(1:non_zero_time_indices(end)), state_vector(3,1:non_zero_time_indices(end)), ...
+    'Linewidth', 2,'color','black') 
+
  
 hold on
 
@@ -65,9 +68,31 @@ plot(t, state(:,2), '--', 'Linewidth', 2, 'color','blue')
 
 hold on 
 
-plot(t, state(:,3), '--', 'Linewidth', 2, 'color','yellow') 
+plot(t, state(:,3), '--', 'Linewidth', 2, 'color','black') 
 
-xlabel('Time(days)', 'Fontsize', 18);
+% plot(log10(times), state_vector(1,:), 'Linewidth', 2,'color','red') 
+% 
+% hold on
+% 
+% plot(log(times), state_vector(2,:), 'Linewidth', 2, 'color','blue') 
+% 
+% hold on
+% 
+% plot(log10(times), state_vector(3,:), 'Linewidth', 2, 'color','black') 
+%  
+% hold on
+% 
+% plot(log10(t), state(:,1),'--', 'Linewidth', 2, 'color','red') 
+% 
+% hold on 
+% 
+% plot(log10(t), state(:,2), '--', 'Linewidth', 2, 'color','blue') 
+% 
+% hold on 
+% 
+% plot(log10(t), state(:,3), '--', 'Linewidth', 2, 'color','black') 
+
+xlabel('Time (days)', 'Fontsize', 18);
 ylabel('Population Size', 'Fontsize', 18);
 str = ['Population Evolution as a Function of Time for \beta = ',num2str(beta), ...
     ', \gamma = ', num2str(gamma), ', S = ', num2str(initial_state(1))];
@@ -78,7 +103,10 @@ legend('Susceptible (stochastic)', 'Infected (stochastic)', 'Recovered (stochast
  
 function d_state_dt = DeterministicODEs(t, state) 
 
-beta = 0.01;  
+%beta = 0.01; 
+beta = 0.1; 
+% beta = 0.005; 
+
 gamma = 0.1; 
 
 d_state_dt = zeros(3,1); 
