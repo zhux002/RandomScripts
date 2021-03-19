@@ -1,6 +1,3 @@
-figure
-clear
-
 % initialization 
 n = 200;
 times = zeros(1, n); 
